@@ -1,7 +1,8 @@
 <template>
   <div
     class="pedia-block"
-    :style="{'background' : bgColor}">
+    :style="{'background' : bgColor}"
+    @click="toSecondRoute">
     <p>{{obj.title}}</p>
   </div>
 </template>
@@ -16,8 +17,13 @@ export default {
     }
   },
   data () {
-    return {
-      bgColor: ''
+    return { bgColor: '' }
+  },
+  methods: {
+    toSecondRoute () {
+      console.log(this.$route)
+      console.log(this.$router)
+      this.$router.push(this.$route.path + '/' + this.obj.title)
     }
   },
   created () {
@@ -49,6 +55,9 @@ export default {
   font-weight bolder
 
   transition all .1s ease-out
+  p
+    user-select none
+    color #2c3e50
 
 .pedia-block:hover
   transform scale(1.1)

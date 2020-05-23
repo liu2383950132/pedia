@@ -1,6 +1,6 @@
 <template>
   <div class="pedia">
-    <h2 class="line-through">FUCK-YOU MONEY</h2>
+    <h2 class="line-through">FUCK-YOU MONEY ? NO,</h2>
     <h1>FUCK-YOU ABILITY</h1>
     <div class="block-area">
       <pedia-block
@@ -12,13 +12,16 @@
 </template>
 
 <script>
-const PediaBlock = () => import('./childCpns/PediaBlock')
+const PediaBlock = () => import('@/components/PediaBlock')
 export default {
   name: 'Pedia',
   components: { PediaBlock },
   data () {
     return {
       pediaBlockArr: [
+        { title: 'html' },
+        { title: 'css' },
+        { title: 'js' },
         { title: 'vue' },
         { title: 'algorithm' },
         { title: 'animation' },
@@ -36,7 +39,7 @@ export default {
 
 <style lang="stylus" scoped>
 .pedia
-  color #000
+  color #2c3e50
   .line-through
     text-decoration line-through
   h2, h1
