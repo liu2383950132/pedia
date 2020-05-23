@@ -7,6 +7,16 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
+    name: 'Pedia',
+    component: () => import('../views/Pedia/Pedia.vue')
+  },
+  {
+    path: '/animation',
+    name: 'Animation',
+    component: () => import('../views/Pedia/Animation.vue')
+  },
+  {
+    path: '/vue',
     name: 'Home',
     component: Home
   },
