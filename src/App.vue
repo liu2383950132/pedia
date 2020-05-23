@@ -24,9 +24,9 @@ body
   color #2c3e50
   margin-top 60px
 
-.el-button.el-button--default.is-plain
-  color #DCDFE6
-[href="/pedia"]
-  display block
-  margin-bottom 4vh
+// .el-button.el-button--default.is-plain
+//   color #DCDFE6
+// [href="/pedia"]
+//   display block
+//   margin-bottom 4vh
 </style>

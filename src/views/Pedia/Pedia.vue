@@ -44,7 +44,6 @@ export default {
   .block-area
     width 100vw
     height 10vh
-    background slateblue
 
     display flex
     flex-wrap wrap

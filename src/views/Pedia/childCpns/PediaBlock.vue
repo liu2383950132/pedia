@@ -48,14 +48,9 @@ export default {
   font-size 6vh
   font-weight bolder
 
-  @keyframes amplify {
-    0% { transform : scale(1) }
-    100% { transform : scale(1.05) }
-  }
+  transition all .1s ease-out
 
 .pedia-block:hover
-    animation amplify .5s
-    // animation-direction alternate
-    animation-fill-mode forwards
+  transform scale(1.1)
 
 </style>
