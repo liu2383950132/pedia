@@ -48,10 +48,11 @@ export default {
   height 20vh
 
   display flex
+  flex-wrap nowrap
   align-items center
   justify-content center
   line-height 1
-  font-size 6vh
+  font-size 100%
   font-weight bolder
 
   transition all .1s ease-out

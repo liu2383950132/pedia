@@ -1,0 +1,117 @@
+<template>
+  <div class="selectors">
+    declaration 1个属性与值的键值对(大小写不敏感)
+      英文冒号 ':' （U+003A COLON）隔开 两边空白不是必需
+      每个属性都定义了合法值
+      对属性给非法值
+      声明就会被视为无效
+      整个声明被CSS引擎忽略
+
+    declaration block
+      U+007B开始 U+007D结束
+      U+003B SEMICOLON隔开声明
+      声明之间的空格会被忽略
+      声明块里最后一个声明可不用分号
+
+    ruleset(B. rule)
+      selectors + declaration block
+
+    一个元素可能被多个选择器选中
+    因此会有多个规则
+    有可能以不同的值去设置同一属性
+    层叠（cascade) 算法会规定哪个优先级最高并生效
+
+    用一组选择器来定义的单个规则集
+    比用多个单一选择器来定义的多个规则集更加简洁
+    但这却不适用于规则集的有效性
+    如果其中的一个选择器无效
+    如使用了一个未知的伪元素或伪类
+    导致整个选择器都会无效
+    同时对应的规则都会被忽略
+
+    通用选择器 Universal selector
+    ID 选择器 ID selector
+    类选择器 Class selector
+    类型选择器 Type selector
+    属性选择器 Attribute selector
+      attr
+      尾部 空格+s区分大小写 空格+i反之
+        attr=
+        attr*=
+        attr^=
+        attr$=
+        attr~=
+          属性是一个以空格作为分隔的值列表，其中至少有一个值为 value
+        attr|=
+          属性值为“value”或是以“value-”为前缀（"-"为连字符，Unicode 编码为 U+002D）开头
+
+    组合选择器
+      A B Descendant combinator
+      A > B Child combinator
+      A ~ B General sibling combinator
+      A + B Adjacent sibling combinator
+    组选择器 ,
+    伪类
+      :active
+      :checked
+      :default
+      :defined
+      :disabled
+      :empty
+      :enabled
+      :first
+      :first-child
+      :first-of-type
+      :focus
+      :focus-within
+      :host
+      :host()
+      :hover
+      :indeterminate
+      :in-range
+      :invalid
+      :lang()
+      :last-child
+      :last-of-type
+      :left
+      :link
+      :not()
+      :nth-child()
+      :nth-last-child()
+      :nth-last-of-type()
+      :nth-of-type()
+      :only-child
+      :only-of-type
+      :optional
+      :out-of-range
+      :read-only
+      :read-write
+      :required
+      :right
+      :root
+      :scope
+      :target
+      :valid
+      :visited
+
+    伪元素
+      ::after
+      ::before
+      ::selection
+      ::first-line
+      ::first-letter
+      ::slotted
+      ::cue
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Selectors'
+
+}
+</script>
+
+<style lang="stylus" scoped>
+
+</style>

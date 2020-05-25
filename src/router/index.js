@@ -26,6 +26,21 @@ const routes = [
     name: 'Animation',
     component: () => import('../views/Animation/Animation')
   },
+  {
+    path: '/pedia/html',
+    name: 'Html',
+    component: () => import('../views/Html/Html')
+  },
+  {
+    path: '/pedia/css',
+    name: 'Css',
+    component: () => import('../views/Css/Css')
+  },
+  {
+    path: '/pedia/css/selectors',
+    name: 'Selectors',
+    component: () => import('../views/Css/Selectors/Selectors')
+  },
 
   // official
   {
