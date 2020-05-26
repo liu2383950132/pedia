@@ -6,6 +6,8 @@ import {
   Submenu,
   MenuItem,
   MenuItemGroup
+  // Collapse,
+  // CollapseItem
 } from 'element-ui'
 export default {
   install: function (Vue) {

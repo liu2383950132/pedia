@@ -37,9 +37,34 @@ const routes = [
     component: () => import('../views/Css/Css')
   },
   {
+    path: '/pedia/css/syntax',
+    name: 'Syntax',
+    component: () => import('../views/Css/Syntax/Syntax')
+  },
+  {
+    path: '/pedia/css/specificity',
+    name: 'Specificity',
+    component: () => import('../views/Css/Specificity/Specificity')
+  },
+  {
     path: '/pedia/css/selectors',
     name: 'Selectors',
     component: () => import('../views/Css/Selectors/Selectors')
+  },
+  {
+    path: '/pedia/css/BFC',
+    name: 'BFC',
+    component: () => import('../views/Css/BFC/BFC')
+  },
+  {
+    path: '/pedia/css/flex',
+    name: 'Flex',
+    component: () => import('../views/Css/Flex/Flex')
+  },
+  {
+    path: '/pedia/css/grid',
+    name: 'Grid',
+    component: () => import('../views/Css/Grid/Grid')
   },
 
   // official
