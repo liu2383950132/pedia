@@ -1696,7 +1696,214 @@ matchAll 返回1个正则表达式在当前字符串的所有匹配
 
 
 # 正则的扩展
+RegExp object is used for matching text with a pattern
+## syntax
++ /pattern/flags
++ new RegExp(pattern, [, flags])
+  + new RegExp('ab+c', [, flags])
+  + new RegExp(/ab+c/, [, flags])
++ RegExp(pattern, [, flags])
 
+flags
++ g 全局匹配
++ i 大小写忽略
++ m 多行 将开始和结束字符（^和$）视为在多行上工作（也就是，分别匹配每一行的开始和结束（由 \n 或 \r 分割），而不只是只匹配整个输入字符串的最开始和最末尾处
++ u Unicode; 将模式视为Unicode序列点的序列
++ y 粘性匹配; 仅匹配目标字符串中此正则表达式的lastIndex属性指示的索引(并且不尝试从任何后续的索引匹配)
++ s dotAll模式，匹配任何字符（包括终止符 '\n'）
+
+
+当表达式被赋值时
+字面量形式提供 正则表达式的编译（compilation）状态
+正则表达式保持为常量时
+使用字面量
+
+例如
+在循环中使用字面量
+构造一个正则表达式时
+正则表达式不会在每一次迭代
+都被重新编译（recompiled）
+
+正则表达式对象的构造函数
+如 new RegExp('ab+c') 提供
+正则表达式运行时编译（runtime compilation）
+
+如果你知道正则表达式模式将会改变
+或者你事先不知道什么模式
+而是从另一个来源获取
+如用户输入
+这些情况都可以使用构造函数
+
+当使用构造函数创造正则对象时
+需要常规的字符转义规则（在前面加反斜杠 \）
+new RegExp("\\w+") 等价 /\w+/
+
+## 特殊字符Character
+### C classes 字符类别
+.
+匹配任意单个字符(行结束符除外：\n \r \u2028 或 \u2029)
+在字符集中，点( . )失去其特殊含义，并匹配一个字面点( . )
+m 多行（multiline）标志不会改变点号的表现
+因此为了匹配多行中的字符集，可使用[^] （当然你不是打算用在旧版本 IE 中）
+它将会匹配任意字符，包括换行符
+/.y/ 匹配 "yes make my day" 中的 "my" 和 "ay"，但是不匹配 "yes"
+
+\d \D
+[0-9] [^0-9]
+\w \W
+[A-Za-z0-9_] [^A-Za-z0-9_]
+\s \S
+[ \f\n\r\t\v​\u00a0\u180e\u200a​​\u202f\u205f\u1680​​\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u2028\u2029\u3000]
+[^ \f\n\r\t\v​\u00a0\u180e\u200a​​\u202f\u205f\u1680​​\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u2028\u2029\u3000]
+
+\t 水平制表符1个
+\r 回车符1个
+\n 换行符1个
+\v 垂直制表符1个
+\f 换页符1个
+[\b] 退格符1个
+\0 NUL字符1个 不要在此后面跟小数点
+
+\cX	匹配字符串中的一个控制字符
+X 是 A - Z 的一个字母 
+/\cM/ 匹配字符串中的 control-M
+
+\xhh	匹配编码为 hh （两个十六进制数字）的字符
+\uhhhh	匹配 Unicode 值为 hhhh （四个十六进制数字）的字符
+\	
+加在有字面意义的字符之前
+表示下一个字符具有特殊用处
+并且不会被按照字面意义解释
+/b/ 匹配字符 'b'
+/\b/ 匹配一个单词边界
+
+加在有特殊意义的字符之前
+表示下一个字符不具有特殊用途
+会被按照字面意义解释
+如 * 是一个特殊字符
+表示匹配某个字符 0 或多次
+/a*/ 意味着 0 或多个 "a"
+/a\*/ 匹配 'a*'
+### C sets/groups 字符 集合/组
+**使用 - 指定1个范围**
++ [abcd]
+[abcd] 等价 [a-d]
+匹配"brisket"中的'b'和"chop"中的'c'
++ [^abcd] 反义(/补充)字符集(/组)
+[^abcd] 等价 [^a-d]
+
+### boundaries 边界
+^
+匹配输入开始
+匹配一个断行（line break）符后的开始处(flag m)
+$
+匹配输入结尾
+匹配一个断行（line break）符前的结尾处(flag m)
+\b
+匹配一个零宽单词边界（zero-width word boundary）
+匹配一个零宽非单词边界（zero-width non-word boundary）
+\B
+### grouping 分组
+(x) // 捕获括号（capturing parentheses）
+匹配 x 并且捕获匹配项
+/(foo)/ 匹配且捕获 "foo bar." 中的 "foo"
+被匹配的子字符串可以在结果数组的元素 [1], ..., [n] 中找到
+或在被定义的 RegExp 对象的属性 $1, ..., $9 中找到
+捕获组（Capturing groups）有性能惩罚
+如果不需再次访问被匹配的子字符串
+最好使用非捕获括号（non-capturing parentheses）
+
+(?:x)// 非捕获括号（non-capturing parentheses）
+匹配 x 不会捕获匹配项
+匹配项不能够从结果数组的元素 [1], ..., [n] 
+或已被定义的 RegExp 对象的属性 $1, ..., $9 再次访问到
+### back reference 反向引用
+\n
+n 是一个正整数
+一个反向引用（back reference）
+指向正则表达式中第 n 个括号（从左开始数）中匹配的子字符串
+
+/apple(,)\sorange\1/ 匹配
+"apple, orange, cherry, peach." 中的 "apple,orange,"
+
+### quantifiers 数量词
+x* 匹配前面的模式x n次
+/bo*/
+匹配 "A ghost booooed" 中的 "boooo"
+匹配 "A bird warbled" 中的 "b"
+不匹配 "A goat grunted"
+
+x+ 匹配前面的模式 x 0次以上
+等价 {1,}
+/a+/
+匹配 "candy" 中的 "a"
+匹配 "caaaaaaandy" 中所有的 "a"
+
+x*?
+x+?	
+最小可能匹配
+/".*?"/ 匹配 '"foo" "bar"' 中的 '"foo"'
+/".*"/ 匹配 '"foo" "bar"'
+
+x? 匹配模式 x 0/1次
+/e?le?/ 匹配 "angel" 中的 "el"
+/e?le?/ 匹配 "angle" 中的 "le"
+
+在数量词 *、+、? 或 {}, 任意一个后面紧跟该符号（?）
+会使数量词变为非贪婪（ non-greedy） 
+即匹配次数最小化
+默认情况下，是贪婪的（greedy），即匹配次数最大化
+
+在使用于向前断言（lookahead assertions）时
+见该表格中 (?=)、(?!) 和 (?:) 的说明
+
+x|y	匹配 x 或 y
+/green|red/ 匹配 "green apple" 中的 ‘green'
+/green|red/ 匹配 "red apple." 中的 'red'
+
+x{n} 模式 x 连续出现 n 次时匹配
+/a{2}/ 
+匹配 "caandy," 中的两个 "a"
+匹配 "caaandy." 中的前两个 "a"
+不匹配 "candy," 中的 "a"
+
+x{n,}	
+模式 x 连续出现至少 n 次时匹配
+/a{2,}/
+匹配 "caandy" 和 "caaaaaaandy." 中所有的 "a"。
+不匹配 "candy" 中的 "a"
+
+x{n,m}	
+模式 x 连续出现至少 n 次，至多 m 次时匹配
+/a{1,3}/ 
+匹配 "candy," 中的 "a"，"caandy," 中的两个 "a"
+匹配 "caaaaaaandy" 中的前面三个 "a"
+不匹配 "cndy"
+当匹配 "caaaaaaandy" 时，即使原始字符串拥有更多的 "a"，匹配项也是 "aaa"
+
+### assertions 断言
+x(?=y)	
+仅匹配被y跟随的x
+
+/Jack(?=Sprat)/
+如果"Jack"后面跟着sprat，则匹配之
+
+/Jack(?=Sprat|Frost)/ 
+如果"Jack"后面跟着"Sprat"或者"Frost"，则匹配之
+"Sprat" 和"Frost" 都不会在匹配结果中出现
+
+x(?!y)	
+仅匹配不被y跟随的x
+/\d+(?!\.)/ 只会匹配不被点（.）跟随的数字
+/\d+(?!\.)/.exec('3.141') 匹配"141"，而不是"3.141"
+
+(?<=y)x	
+x只有在y后面才匹配
+/(?<=\$)\d+/.exec('Benjamin Franklin is on the $100 bill')  // ["100"]
+
+(?<!y)x	
+x只有不在y后面才匹配
+/(?<!\$)\d+/.exec('it’s is worth about €90') // ["90"]
 # 数值的扩展
 
 # 函数
