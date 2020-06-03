@@ -1440,8 +1440,9 @@ let bad = `bad escape sequence: \unicode`
 
 # 字符串的新增方法
 <!--
-  String.fromCodePoint()
   String.raw()
+  String.fromCharCode()
+  String.fromCodePoint()
   实例方法：codePointAt()
   实例方法：normalize()
   实例方法：includes(), startsWith(), endsWith()
@@ -1450,73 +1451,101 @@ let bad = `bad escape sequence: \unicode`
   实例方法：trimStart()，trimEnd()
   实例方法：matchAll()
 -->
-
-## String.fromCodePoint()
-String.fromCharCode(0x20BB7)// "ஷ"
-由 Unicode 码点返回对应字符
-不能识别码点大于0xFFFF的字符
-0x20BB7发生了溢出，最高位2被舍弃了
-最后返回码点U+0BB7对应的字符
-
-ES6 提供方法 识别码点大于0xFFFF的字符
-弥补了 **String.fromCharCode** 的不足
-在作用上与 **codePointAt** 方法相反
-String.fromCodePoint(0x20BB7)// "𠮷"
-String.fromCodePoint方法有多个参数，则被合并成一个字符串返回
-String.fromCodePoint(0x78, 0x1f680, 0x79) === 'x\uD83D\uDE80y'// true
-
-**fromCodePoint** 方法定义在 String对象
-**codePointAt** 方法定义在 字符串的实例对象
-
 ## String.raw()
+1.
 往往用于处理模板字符串
 会将所有变量替换
 返回 展示意义上完全一致的字符串
-
 String.raw`Hi\n${2+3}!`
-// 结果"Hi\n5!"; 实际"Hi\\n5!" \被转义
-
+// 实际输出 'Hi\\n5'
+// 结果输出 'Hi\n5'
 String.raw`Hi\u000A!`;
-// 结果"Hi\u000A!"; 实际"Hi\\u000A!" \被转义
-
+// 实际输出 'Hi\\u000A!'
+// 结果输出 'Hi\u000A!'
 String.raw`Hi\\n`
-// 结果"Hi\\n"; 实际"Hi\\\\n" \\被转义
-String.raw`Hi\\n` === "Hi\\\\n" // true
+// 实际输出 'Hi\\\\n'
+// 结果输出 'Hi\\n'
 
+2
+String.raw() 
+是唯一一个内置的
+模板字符串**标签函数**
+并没有特殊
+可以实现一个和它
+功能一模一样的标签函数
 
-本质
-String.raw`foo${1 + 2}bar`// =>
-String.raw(strArr, ...values)
-String.raw(['foo ', 'bar'], 1 + 2)
-String.raw = function () { console.log(arguments) }
+syntax
+String.raw({raw : Array}, ...substitutions)
+String.raw`templateString`
+
+String.raw(
+  { raw: ['foo', 'bar'] },
+  1 + 2
+) // "foo3bar"
 String.raw`foo${1 + 2}bar`
 
-
-`foo${1 + 2}bar`// 等同于
-String.raw({ raw: ['foo', 'bar'] }, 1 + 2) // "foo3bar"
-
-
-String.raw代码实现
-第1个参数是个对象, 具有值为数组的raw成员
-
-String.raw = (strings, ...values) => {
-  let output = '', index
-  for (index = 0; index < values.length; index++) {
-    output += strings.raw[index] + values[index];
+myRaw = function (arrLike, ...values) {
+  // arrLike = {
+  //    '0' : str1,
+  //    '1' : str2...
+  //    raw : [str1, str2]
+  //  }
+  let rst = '',
+      i = 0,
+      len = values.length,
+      {raw} = arrLike
+  for(i; i < len; i++) {
+    rst += raw[i] + values[i]
   }
-  output += strings.raw[index]
-  return output;
+  return rst += raw[i]
 }
+myRaw`Hello ${"Hi\\n"}, Hello ${2**4}!!!`
+
+const myRaw = (arrLike, ...values) => {
+  let rst = '', {raw} = arrLike
+  values.forEach((item, i) => rst += raw[i] + item )
+  return rst += raw[raw.length-1]
+}
+myRaw`Hello ${"Hi\\n"}, Hello ${2**4}!!!`
+
+## String.fromCharCode(0-0xFFFF)
+由 Unicode 码点返回对应字符
+String.fromCharCode(65, 66, 67) // "ABC"
+String.fromCharCode(0x2014) // returns "—"
+String.fromCharCode(0x12014)
+// returns "—" (1 is truncated and ignored)
+
+String.fromCharCode(0x20BB7)// "ஷ"
+不识别码点大于0xFFFF的字符
+0x20BB7发生了溢出
+最高位2被舍弃了
+最后返回码点U+0BB7对应的字符
+
+## String.fromCodePoint()
+弥补**String.fromCharCode**的不足
+ES6 fromCodePoint
+识别码点大于0xFFFF的字符
+在作用上与 **codePointAt** 方法相反
+String.fromCodePoint(0x20BB7)// "𠮷"
+
+String.fromCodePoint方法有多个参数，则被合并成一个字符串返回
+String.fromCodePoint(0x78, 0x1f680, 0x79) // "x🚀y"
+'x\uD83D\uDE80y'// "x🚀y"
+String.fromCodePoint(194564) // 你
+String.fromCodePoint(0x2F804) // 你
+**fromCodePoint** 方法定义在 String对象
+**codePointAt** 方法定义在 字符串的实例对象
 
 ## codePointAt
-JavaScript 内部
-字符以 UTF-16 的格式储存
+JavaScript 字符
+以 UTF-16 的格式储存
 1个字符固定为2个字节
 
-需要 4个字节储存的字符
-即 Unicode 码点大于0xFFFF的字符
-JavaScript 会解析成2个字符 
+Unicode 码点
+大于0xFFFF的字符
+需要 4个字节储存
 
+JavaScript 会解析成2个字符 
 var s = "𠮷";
 s.length // 2
 s.charAt(0) // ''
@@ -1524,27 +1553,35 @@ s.charAt(1) // ''
 s.charCodeAt(0) // 55362
 s.charCodeAt(1) // 57271
 
-𠮷 4个字节储存的字符
-𠮷 Unicode 码点0x20BB7
-UTF-16 编码为0xD842 0xDFB7（十进制为55362 57271）
+4个字节储存的字符 𠮷
+Unicode 码点0x20BB7 (134071)
+UTF-16 编码为0xD842 0xDFB7（55362 57271）
 
 JavaScript 将其长度会误判为2
 charAt()方法无法读取整个字符
 charCodeAt()方法只能分别返回前2个字节和后2个字节的值
 
 ES6 **codePointAt**
-正确处理 4 个字节储存的字符 返回Unicode 码点0x20BB7
+正确处理 4 个字节储存的字符
+返回Unicode 码点0x20BB7
 正确返回 32 位的 UTF-16 字符的码点
 
 let s = '𠮷a'
 s.codePointAt(0) // 134071
 s.codePointAt(1) // 57271
 s.codePointAt(2) // 97
+let f = '🖕'
+f.codePointAt(0) // 128405
+f.codePointAt(1) // 56725
+let r = String.fromCodePoint(0x1f680)
+r.codePointAt(0) // 128640 // 🚀
 
 𠮷a 被引擎解析为3个字符
 codePointAt 在第1个字符上正确识别 𠮷
-返回其十进制码点 134071（十六进制 Unicode 码点0x20BB7）
-返回的是码点的十进制值 可用toString转换十六进制
+返回其十进制码点 134071
+（16进制 Unicode 码点0x20BB7）
+返回的是码点的十进制值
+可用toString转换十六进制
 
 在第2和第3个字符上，codePointAt()方法的结果与charCodeAt()方法相同
 2字节储存的常规字符 codePointAt与charCodeAt返回结果相同
@@ -1552,22 +1589,26 @@ codePointAt 在第1个字符上正确识别 𠮷
 codePointAt的参数仍然是不正确的
 字符a在字符串s的正确位置序号应该是 1
 
-for...of循环正确识别 32 位的 UTF-16 字符
+正确识别 32 位的 UTF-16 字符
+1. for...of循环
 for (let ch of '𠮷a') {
   console.log(ch.codePointAt(0).toString(16))
 }
 // 20bb7
 // 61
 
-扩展运算符正确识别 32 位的 UTF-16 字符
-let arr = [...'𠮷a']; // arr.length === 2
-arr.forEach( ch => console.log(ch.codePointAt(0).toString(16)) )
+2. 扩展运算符
+let arr = [...'𠮷a']
+// arr.length === 2
+arr.forEach(
+  ch => console.log(ch.codePointAt(0).toString(16))
+)
 // 20bb7
 // 61
 
 codePointAt 是测试 2字节字符 还是 4字节字符 的最简单方法
 
-function is32Bit(c) { return c.codePointAt(0) > 0xFFFF; }
+const is32Bit = c => { return c.codePointAt(0) > 0xFFFF }
 is32Bit("𠮷") // true
 is32Bit("a") // false
 
@@ -1581,13 +1622,13 @@ Unicode 提供了两种方法
 合成Ǒ（\u004F\u030C）1个字符
 
 JavaScript 不能识别 将合成字符视为两个字符
-'\u01D1'==='\u004F\u030C' //false
 '\u01D1'.length // 1
 '\u004F\u030C'.length // 2
+'\u01D1'==='\u004F\u030C' //false
 
 ES6 字符串实例的normalize
 将字符的不同表示方法统一为同样形式
-称为 Unicode 正规化。
+称为 **Unicode 正规化**。
 
 '\u01D1'.normalize() === '\u004F\u030C'.normalize()// true
 
@@ -1635,8 +1676,7 @@ s.startsWith('Hello') // true
 s.endsWith('!') // true
 s.includes('o') // true
 
-
-第二个参数，表示开始搜索的位置
+第2个参数，表示开始搜索的位置
 s.startsWith('world', 6) // true
 s.endsWith('Hello', 5) // true
 s.includes('Hello', 6) // false
@@ -1708,23 +1748,16 @@ s.trimRight() // "  abc"
 matchAll 返回1个正则表达式在当前字符串的所有匹配
 
 
-# 正则的扩展
-RegExp object is used for matching text with a pattern
-## syntax
+# 正则
+RegExp object is
+used for 
+matching text with a pattern
+## syllabus
 + /pattern/flags
 + new RegExp(pattern, [, flags])
   + new RegExp('ab+c', [, flags])
   + new RegExp(/ab+c/, [, flags])
 + RegExp(pattern, [, flags])
-
-flags
-+ g 全局匹配
-+ i 大小写忽略
-+ m 多行 将开始和结束字符（^和$）视为在多行上工作（也就是，分别匹配每一行的开始和结束（由 \n 或 \r 分割），而不只是只匹配整个输入字符串的最开始和最末尾处
-+ u Unicode; 将模式视为Unicode序列点的序列
-+ y 粘性匹配; 仅匹配目标字符串中此正则表达式的lastIndex属性指示的索引(并且不尝试从任何后续的索引匹配)
-+ s dotAll模式，匹配任何字符（包括终止符 '\n'）
-
 
 当表达式被赋值时
 字面量形式提供 正则表达式的编译（compilation）状态
@@ -1750,178 +1783,7 @@ flags
 当使用构造函数创造正则对象时
 需要常规的字符转义规则（在前面加反斜杠 \）
 new RegExp("\\w+") 等价 /\w+/
-
-## 特殊字符Character
-### boundaries 边界
-^
-匹配输入开始
-匹配一个断行（line break）符后的开始处(flag m)
-$
-匹配输入结尾
-匹配一个断行（line break）符前的结尾处(flag m)
-\b
-匹配一个零宽单词边界（zero-width word boundary）
-\B
-匹配一个零宽非单词边界（zero-width non-word boundary）
-
-### C sets/groups 字符 集合/组
-**使用 - 指定1个范围**
-+ [abcd]
-[abcd] 等价 [a-d]
-匹配"brisket"中的'b'和"chop"中的'c'
-+ [^abcd] 反义(/补充)字符集(/组)
-[^abcd] 等价 [^a-d]
-
-### C classes 字符类
-.
-匹配任意单个字符(行结束符除外：\n \r \u2028 或 \u2029)
-在字符集中，点( . )失去其特殊含义，并匹配一个字面点( . )
-m 多行（multiline）标志不会改变点号的表现
-因此为了匹配多行中的字符集，可使用[^] （当然你不是打算用在旧版本 IE 中）
-它将会匹配任意字符，包括换行符
-/.y/ 匹配 "yes make my day" 中的 "my" 和 "ay"，但是不匹配 "yes"
-
-\d \D
-[0-9] [^0-9]
-\w \W
-[A-Za-z0-9_] [^A-Za-z0-9_]
-\s \S
-
-[ \f\n\r\t\v\u00a0\u1680\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]
-
-\t 水平制表符1个
-\r 回车符1个
-\n 换行符1个
-\v 垂直制表符1个
-\f 换页符1个
-
-[\b] 退格符1个
-\0 NUL字符1个 不要在此后面跟小数点
-
-\cX	匹配字符串中的一个控制字符
-X 是 A - Z 的一个字母 
-/\cM/ 匹配字符串中的 control-M
-
-\xhh	匹配编码为 hh （两个十六进制数字）的字符
-\uhhhh	匹配 Unicode 值为 hhhh （四个十六进制数字）的字符
-\	
-加在有字面意义的字符之前
-表示下一个字符具有特殊用处
-并且不会被按照字面意义解释
-/b/ 匹配字符 'b'
-/\b/ 匹配一个单词边界
-
-加在有特殊意义的字符之前
-表示下一个字符不具有特殊用途
-会被按照字面意义解释
-如 * 是一个特殊字符
-表示匹配某个字符 0 或多次
-/a*/ 意味着 0 或多个 "a"
-/a\*/ 匹配 'a*'
-
-
-### quantifiers 数量词
-x{n} 模式 x 连续出现 n 次时匹配
-/a{2}/ 
-匹配 "caandy," 中的两个 "a"
-匹配 "caaandy." 中的前两个 "a"
-不匹配 "candy," 中的 "a"
-
-x{n,}	
-模式 x 连续出现至少 n 次时匹配
-/a{2,}/
-匹配 "caandy" 和 "caaaaaaandy." 中所有的 "a"。
-不匹配 "candy" 中的 "a"
-
-x{n,m}	
-模式 x 连续出现至少 n 次，至多 m 次时匹配
-/a{1,3}/ 
-匹配 "candy," 中的 "a"，"caandy," 中的两个 "a"
-匹配 "caaaaaaandy" 中的前面三个 "a"
-不匹配 "cndy"
-当匹配 "caaaaaaandy" 时，即使原始字符串拥有更多的 "a"，匹配项也是 "aaa"
-
-x|y	匹配 x 或 y
-/green|red/ 匹配 "green apple" 中的 ‘green'
-/green|red/ 匹配 "red apple." 中的 'red'
-
-x* 匹配前面的模式x n次
-/bo*/
-匹配 "A ghost booooed" 中的 "boooo"
-匹配 "A bird warbled" 中的 "b"
-不匹配 "A goat grunted"
-
-x+ 匹配前面的模式 x 0次以上
-等价 {1,}
-/a+/
-匹配 "candy" 中的 "a"
-匹配 "caaaaaaandy" 中所有的 "a"
-
-x? 匹配模式 x 0/1次
-/e?le?/ 匹配 "angel" 中的 "el"
-/e?le?/ 匹配 "angle" 中的 "le"
-
-x*?
-x+?	
-最小可能匹配
-/".*?"/ 匹配 '"foo" "bar"' 中的 '"foo"'
-/".*"/ 匹配 '"foo" "bar"'
-
-在数量词 *、+、? 或 {}, 任意一个后面紧跟该符号（?）
-会使数量词变为非贪婪（ non-greedy） 
-即匹配次数最小化
-默认情况下，是贪婪的（greedy），即匹配次数最大化
-
-在使用于向前断言（lookahead assertions）时
-见该表格中 (?=)、(?!) 和 (?:) 的说明
-
-### assertions 断言
-x(?=y)	
-仅匹配被y跟随的x
-
-/Jack(?=Sprat)/
-如果"Jack"后面跟着sprat，则匹配之
-
-/Jack(?=Sprat|Frost)/ 
-如果"Jack"后面跟着"Sprat"或者"Frost"，则匹配之
-"Sprat" 和"Frost" 都不会在匹配结果中出现
-
-x(?!y)	
-仅匹配不被y跟随的x
-/\d+(?!\.)/ 只会匹配不被点（.）跟随的数字
-/\d+(?!\.)/.exec('3.141') 匹配"141"，而不是"3.141"
-
-(?<=y)x	
-仅匹配在y后面的x
-/(?<=\$)\d+/.exec('Benjamin Franklin is on the $100 bill')  // ["100"]
-
-(?<!y)x	
-仅匹配不在y后面的x
-/(?<!\$)\d+/.exec('it’s is worth about €90') // ["90"]
-
-### capturing 捕获
-(x) // 捕获括号（capturing parentheses）
-匹配 x 并且捕获匹配项
-/(foo)/ 匹配且捕获 "foo bar." 中的 "foo"
-被匹配的子字符串可以在结果数组的元素 [1], ..., [n] 中找到
-或在被定义的 RegExp 对象的属性 $1, ..., $9 中找到
-捕获组（Capturing groups）有性能惩罚
-如果不需再次访问被匹配的子字符串
-最好使用非捕获括号（non-capturing parentheses）
-
-(?:x)// 非捕获括号（non-capturing parentheses）
-匹配 x 不会捕获匹配项
-匹配项不能够从结果数组的元素 [1], ..., [n] 
-或已被定义的 RegExp 对象的属性 $1, ..., $9 再次访问到
-#### back reference 反向引用
-\n
-n 是一个正整数
-一个反向引用（back reference）
-指向正则表达式中第 n 个括号（从左开始数）中匹配的子字符串
-
-/apple(,)\sorange\1/ 匹配
-"apple, orange, cherry, peach." 中的 "apple,orange,"
-
+## 方法
 exec
 test
 match
@@ -1933,14 +1795,24 @@ split
 RegExp.prototype.
 flags
   /foo/ig.flags;   // "gi" //gimuy顺序
-global
+global 全局匹配
   var regex = new RegExp("foo", "g")
   regex.global // true
-ignoreCase
+ignoreCase 
 multiline
+  将^, $ 视为在多行上工作
+  匹配整个输入字符串的头尾
+  (由\n, \r分割)的基础上
+  匹配每一行的开始和结束
 unicode
+  将模式视为Unicode序列点的序列
 sticky
+  粘性匹配
+  仅匹配目标字符串中
+  此正则表达式的lastIndex属性指示的索引
+  (并且不尝试从任何后续的索引匹配)
 dotAll
+  匹配任何字符(包括终止符'\n')
 
 source
   var regex = /fooBar/ig
@@ -1959,27 +1831,31 @@ encryptPhone('15018168034')// '150****8034'
 \ ^ | $ *
 字符 基础的计算机字符编码
 A-Za-z0-9
-2. \
-元字符 => 字符
-* => \*
-字符 => 拥有特殊的含义
-边界 ^, $, \b, \B
-^
-+ 输入开始
-+ 断行（line break）符后的开始处(flag m)
-$
-+ 输入结尾
-+ 断行（line break）符前的结尾处(flag m)
-\b 一个零宽单词边界（zero-width word boundary）
-\B 一个零宽非单词边界（zero-width non-word boundary）
-[\b]\0\cC
-\n\t\r\f\v
-\xhh
-匹配一个2位十六进制数（\x00-\xFF）表示的字符
-\uhhhh
-匹配 Unicode 值为 hhhh （4个16进制数字）的字符
-匹配 1个4位16进制数表示的 UTF-16 代码单元
-3. [] 集合区间
+2. 转义字符 \
+   + 元字符 => 字符
+     + \ => \\
+   + 字符 => 拥有特殊的含义
+     + n... => \n\t\r\f\v
+3. 特殊字符
+   + 边界 ^, $, \b, \B
+     + ^
+       + 输入开始
+       + 断行（line break）符后的开始处(flag m)
+     + $
+       + 输入结尾
+       + 断行（line break）符前的结尾处(flag m)
+     + \b 一个零宽单词边界（zero-width word boundary）
+     + \B 一个零宽非单词边界（zero-width non-word boundary）
+   + else
+     + [\b] 退格符
+     + \0 NUL字符
+     + \c[A-Z] 控制字符
+     + \xhh
+       + 匹配一个2位十六进制数（\x00-\xFF）表示的字符
+     + \uhhhh
+       + 匹配 Unicode 值为 hhhh （4个16进制数字）的字符
+       + 匹配 1个4位16进制数表示的 UTF-16 代码单元
+4. [] 集合区间
 [123]
 [^123]
 [0-9] \d
@@ -1990,7 +1866,7 @@ $
 [^ \f\n\r\t\v\u00a0\u1680\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff] \S
 [^\n\r\u2028\u2029] .
 [.] 变成字面点
-4. {} 数量
+5. {} 数量
 x{n}
   x{n} === x*
 x{n,}
@@ -2000,21 +1876,293 @@ x{0,m}
 x{n,m}
 ES6
 \u{hhhh}或\u{hhhhh} （仅当设置了u标志时）匹配一个十六进制数表示的 Unicode 字符
-
-5. () 
+6. () 
 断言
   x(?=y), x(?!y), (?<=y)x, (?<!y)x
+  /\d+(?!\.)/ 只会匹配不被点（.）跟随的数字
+  /\d+(?!\.)/.exec('3.141') 匹配"141"，而不是"3.141"
+  /(?<=\$)\d+/.exec('Benjamin Franklin is on the $100 bill')  // ["100"]
+  /(?<!\$)\d+/.exec('it’s is worth about €90') // ["90"]
 捕获
   (x)
+  /(foo)/ 匹配且捕获 "foo bar." 中的 "foo"
+  被匹配的子字符串可以在结果数组的元素 [1], ..., [n] 中找到
+  或在被定义的 RegExp 对象的属性 $1, ..., $9 中找到
+  捕获组（Capturing groups）有性能惩罚
+  如果不需再次访问被匹配的子字符串
+  最好使用非捕获括号（non-capturing parentheses）
   (?:x)
+  匹配 x 不会捕获匹配项
 反向引用 back reference
   \n
+  正则表达式中
+  第 n 个括号（从左开始数）中匹配的子字符串
+  /apple(,)\sorange\1/ 匹配
+  "apple, orange, cherry, peach."
+  中的 "apple,orange,"
+7. 贪婪
+贪婪 匹配次数最大化 全匹配
+/".*"/ 匹配 '"foo" "bar"'
+非贪婪 匹配次数最小化
+/".*?"/ 匹配 '"foo" "bar"' 中的 '"foo"'
 
-6. 
+# 正则的扩展
+## RegExp构函
+syntax
+new RegExp('xyz', 'i') 等价
+new RegExp(/xyz/i) 等价
+/xyz/i
+
+es5
+new RegExp(/xyz/, 'i')
+// Uncaught TypeError: 
+// Cannot supply flags when 
+// constructing one RegExp from another
+
+es6
+new RegExp(/abc/ig, 'i').flags
+// 'i'
+
+## 字符串的正则方法
+字符串对象共有 4 个方法
+可以使用正则表达式
+ES6 将这 4 个方法的引用
+添加到了RegExp原型上
+从而做到所有与正则相关的方法
+全都定义在RegExp对象上
++ String.prototype.match 调用 RegExp.prototype[Symbol.match]
++ String.prototype.replace 调用 RegExp.prototype[Symbol.replace]
++ String.prototype.search 调用 RegExp.prototype[Symbol.search]
++ String.prototype.split 调用 RegExp.prototype[Symbol.split]
+
+## u 修饰符
+ES6 对正则表达式
+添加了修饰符u
+含义为“Unicode 模式”
+用来正确处理
+大于\uFFFF的 Unicode 字符
+即4字节的 UTF-16 编码
+
+/^\uD83D/.test('\uD83D\uDC2A') // true
+4字节的 UTF-16 编码
+代表1个字符
+ES5 不支持4字节的 UTF-16 编码
+将其识别为两个字符
+
+/^\uD83D/u.test('\uD83D\uDC2A') // false
+加了u修饰符
+ES6 将其识别为1个字符
+
+.
+码点大于0xFFFF的 Unicode 字符
+点字符不能识别
+必须加上u修饰符
+var s = '𠮷'
+/^.$/.test(s) // false
+/^.$/u.test(s) // true
+
+Unicode 字符表示法
+ES6 新增
+使用大括号表示 Unicode 字符
+必须加上u修饰符
+否则会被解读为量词
+/\u{61}/.test('a') // false
+/\u{61}/u.test('a') // true
+/\u{20BB7}/u.test('𠮷') // true
+
+使用u修饰符
+所有量词都会正确识别
+码点大于0xFFFF的 Unicode 字符
+/a{2}/.test('aa') // true
+/a{2}/u.test('aa') // true
+/𠮷{2}/.test('𠮷𠮷') // false
+/𠮷{2}/u.test('𠮷𠮷') // true
+
+预定义模式
+正确识别
+码点大于0xFFFF的 Unicode 字符
+/^\S$/.test('𠮷') // false
+/^\S$/u.test('𠮷') // true
+
+str正确长度
+const codePointLen = str => {
+  let rst = str.match(/[\s\S]/gu)
+  return rst ? rst.length : 'match failed.'
+}
+codePointLen('𠮷𠮷')// 2
+'𠮷𠮷'.length// 4
+
+有些 Unicode 字符的编码不同
+但字型相近, 如
+\u004B与\u212A都是大写K
+u修饰符识别非规范的K字符
+/[a-z]/i.test('\u212A') // false
+/[a-z]/iu.test('\u212A') // true
+
+u模式正则中
+无意义的转义报错
+/\,/; // /\,/
+/\,/u; // 报错
+// Uncaught SyntaxError: 
+// Invalid regular expression:
+// /\,/: Invalid escape
+
+## RegExp.prototype.unicode 成员
+const r1 = /hello/,
+      r2 = /hello/u
+r1.unicode // false
+r2.unicode // true
+
+## sticky
+g修饰符只要
+剩余位置中存在匹配
+y修饰符确保匹配必须
+从剩余的第一个位置开始
+var s = 'aaa_aa_a';
+var r1 = /a+/g;
+var r2 = /a+/y;
+r1.exec(s) // ["aaa"]
+r1.exec(s) // ["aa"]
+
+r2.exec(s) // ["aaa"]
+// y要求匹配从aaa后的_开始
+r2.exec(s) // null
+
+var s = 'aaa_aa_a';
+var r = /a+_/y;
+r.exec(s) // ["aaa_"]
+r.exec(s) // ["aa_"]
+r.exec(s) // [null]
+
+const REGEX = /a/g;
+REGEX.lastIndex = 2;
+// 指定从2号位置（y）开始匹配
+REGEX.exec('xaya')
+// ["a", index: 3, ...
+REGEX.lastIndex // 4
+REGEX.exec('xaya') // null
+
+const REGEX = /a/y;
+REGEX.lastIndex = 2;
+REGEX.exec('xaya') // null
+REGEX.lastIndex = 3
+REGEX.exec('xaya');
+// ["a", index: 3,...
+REGEX.lastIndex // 4
+
+实际上，y修饰符号
+隐含了头部匹配的标志^
+/b/y.exec('aba')
+// null
+
+y修饰符的设计本意
+就是让头部匹配的标志^
+在全局匹配中都有效
+const REGEX = /a/gy
+'aaxa'.replace(REGEX, '-') // '--xa'
+
+单单一个y修饰符对match方法
+只能返回第一个匹配
+须与g修饰符联用
+才能返回所有匹配
+'a1a2a3'.match(/a\d/y) // ["a1"]
+'a1a2a3'.match(/a\d/gy) // ["a1", "a2", "a3"]
+
+const TOKEN_Y = /\s*(\+|[0-9]+)\s*/y;
+const TOKEN_G  = /\s*(\+|[0-9]+)\s*/g;
+
+tokenize(TOKEN_Y, '3 + 4')
+// [ '3', '+', '4' ]
+tokenize(TOKEN_G, '3 + 4')
+// [ '3', '+', '4' ]
+
+
+g修饰符会忽略非法字符，而y修饰符不会
+function tokenize(TOKEN_REGEX, str) {
+  let result = [], match
+  while (match = TOKEN_REGEX.exec(str)) {
+    result.push(match[1]);
+  }
+  return result
+}
+const TOKEN_Y = /\s*(\+|[0-9]+)\s*/y;
+const TOKEN_G  = /\s*(\+|[0-9]+)\s*/g;
+
+tokenize(TOKEN_Y, '3 + 4')
+// [ '3', '+', '4' ]
+tokenize(TOKEN_G, '3 + 4')
+// [ '3', '+', '4' ]
+tokenize(TOKEN_Y, '3x + 4')
+// [ '3' ]
+tokenize(TOKEN_G, '3x + 4')
+// [ '3', '+', '4' ]
+
+## RegExp.prototype.sticky 属性
+var r = /hello\d/y;
+r.sticky // true
+
+## RegExp.prototype.flags 属性
+// ES6 的 flags 属性
+// 返回正则表达式的修饰符
+/abc/ig.flags
+// 'gi'
+
+// ES5 的 source 属性
+// 返回正则表达式的正文
+/abc/ig.source
+// "abc"
 
 
 
-# 数值的扩展
+## s 修饰符：dotAll 模式
+.是一个特殊字符
+代表任意的单个字符
+例外2
++ 4字节的 UTF-16 字符
++ 行终止符line terminator character(可以用u修饰符解决)
+  - \n (\u000A)
+  - \r (\u000D)
+  - (\u2028) line separator
+  - (\u2029) paragraph separator
+
+/foo.bar/.test('foo\nbar')// false
+/foo[^]bar/.test('foo\nbar')// true
+
+ES2018 引入s修饰符，使得.可以匹配任意单个字符
+dotAll模式
+/foo.bar/s.test('foo\nbar') // true
+
+const re = /foo.bar/s;
+// 另一种写法
+// const re = new RegExp('foo.bar', 's');
+
+re.test('foo\nbar') // true
+正则表达式还引入了一个dotAll属性
+返回一个布尔值
+表示该正则表达式
+是否处在dotAll模式
+re.dotAll // true
+re.flags // 's'
+
+## 后行断言
+ES2018 之前
+先行断言lookahead
+先行否定断言negative lookahead
+ES2018 引入后行断言
+后行断言lookbehind
+后行否定断言negative lookbehind
+
+/\d+(?=%)/.exec('100% of US presidents have been male')  // ["100"]
+/\d+(?!%)/.exec('that’s all 44 of them')                 // ["44"]
+
+/(?<=\$)\d+/.exec('Benjamin Franklin is on the $100 bill')  // ["100"]
+/(?<!\$)\d+/.exec('it’s is worth about €90')                // ["90"]
+
+const RE_DOLLAR_PREFIX = /(?<=\$)foo/g;
+'$foo %foo foo'.replace(RE_DOLLAR_PREFIX, 'bar');
+// '$bar %foo foo'
+
+
 
 # 函数
 函数参数的默认值
