@@ -14,19 +14,16 @@
 </template>
 
 <style lang="stylus">
+@import url(./style/reset.css);
+#app
+  height 100%
 body
   margin 0
   overflow-x hidden
+
 #app
   font-family Avenir, Helvetica, Arial, sans-serif
   -webkit-font-smoothing antialiased
   -moz-osx-font-smoothing grayscale
-  // text-align center
   color #2c3e50
-
-// .el-button.el-button--default.is-plain
-//   color #DCDFE6
-// [href="/pedia"]
-//   display block
-//   margin-bottom 4vh
 </style>

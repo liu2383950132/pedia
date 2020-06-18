@@ -30,7 +30,8 @@ export default {
         { title: 'es6' },
         { title: 'node' },
         { title: 'typescript' },
-        { title: 'deno' }
+        { title: 'deno' },
+        { title: 'tools' }
       ]
     }
   }

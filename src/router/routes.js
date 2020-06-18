@@ -7,6 +7,11 @@ export default [
     component: () => import('../views/Pedia/Pedia')
   },
   {
+    path: '/pedia/tools',
+    name: 'Tools',
+    component: () => import('../views/Tools/Tools')
+  },
+  {
     path: '/pedia/vue',
     name: 'Vue',
     component: () => import('../views/Vue/Vue')
@@ -15,6 +20,11 @@ export default [
     path: '/pedia/vue/API',
     name: 'vueAPI',
     component: () => import('../views/Vue/API/API')
+  },
+  {
+    path: '/pedia/vue/transition',
+    name: 'vueTransition',
+    component: () => import('../views/Vue/Transition/Transition')
   },
   {
     path: '/pedia/animation',
